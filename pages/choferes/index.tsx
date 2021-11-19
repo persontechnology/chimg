@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import axios from "axios";
-import Tabla from "./tabla";
+import Tabla from "../components/tabla";
 import Layout from '../components/layout'
 import Head from 'next/head'
 import Button from '@mui/material/Button';
@@ -10,9 +10,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
+
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 
 //start login
 import { withSessionSsr } from "../../lib/withSession";
@@ -42,11 +44,11 @@ export default function Index({user}){
 
   const [data, setData] = useState([]);
   const [mensaje, setmensaje] = useState('');
-  const [name, setname] = useState('')
-  const [email, setemail] = useState('')
-  const [password, setpassword] = useState('')
-  const [id, setid] = useState('')
-  const [admin, setadmin] = useState(false)
+  const [_id, set_id] = useState('')
+  const [nombre, setnombre] = useState('')
+  const [cedula, setcedula] = useState('')
+  const [telefono, settelefono] = useState('')
+  const [tipo_licencia, settipo_licencia] = useState('C')
 
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
@@ -58,28 +60,28 @@ export default function Index({user}){
 
 
   function vaciarCajas(){
-    setname('')
-    setemail('')
-    setpassword('')
-    setid('')
-    setadmin(false)
+    set_id('')
+    setnombre('')
+    setcedula('')
+    settelefono('')
+    settipo_licencia('C')
   }
 
   function Opciones({id}){
     return (
       <ButtonGroup variant="contained" aria-label="outlined primary button group">
-        <Button onClick={()=>getUserId({id})}><EditIcon/></Button>
+        <Button onClick={()=>getChoferId({id})}><EditIcon/></Button>
         <Button color="error" onClick={()=>eliminar({id})} ><DeleteIcon/></Button>
       </ButtonGroup>
     )
   }
   
   async function eliminar({id}){
-    await axios.post('/api/usuarios/eliminar', {
-      id: id
+    await axios.post('/api/choferes/eliminar', {
+      _id: id
     })
     .then( async function (response) {
-      const {data}=await getUsers()
+      const {data}=await getChoferes()
       setData(data)
     })
     .catch(function (error) {
@@ -90,13 +92,23 @@ export default function Index({user}){
   const columns = useMemo(
     () => [
       {
-        Header: 'Usuario',
-        accessor: 'name',
+        Header: 'Nombre',
+        accessor: 'nombre',
         filter: "text"
       },
       {
-        Header: 'Email',
-        accessor: 'email',
+        Header: 'Cédula',
+        accessor: 'cedula',
+        filter: "text"
+      },
+      {
+        Header: 'Teléfono',
+        accessor: 'telefono',
+        filter: "text"
+      },
+      {
+        Header: 'Tipo licencia',
+        accessor: 'tipo_licencia',
         filter: "text"
       },
       {
@@ -112,20 +124,22 @@ export default function Index({user}){
   )
 
 
-  async function getUsers() {
-    return await axios.get('/api/usuarios/listado');
+  async function getChoferes() {
+    return await axios.get('/api/choferes/listado');
   }
 
-  async function getUserId({id}) {
-    await axios.post('/api/usuarios/obtener', {
-      id: id
+  async function getChoferId({id}) {
+    
+    await axios.post('/api/choferes/obtener', {
+      _id: id
     })
     .then( async function (response) {
+      set_id(response.data._id)
+      setnombre(response.data.nombre)
+      setcedula(response.data.cedula)
+      settelefono(response.data.telefono)
+      settipo_licencia(response.data.tipo_licencia)
       setOpen(true)
-      setemail(response.data.email)
-      setname(response.data.name)
-      setid(response.data.id)
-      setadmin(response.data.admin)
     })
     .catch(function (error) {
       console.log(error);
@@ -134,7 +148,7 @@ export default function Index({user}){
 
   useEffect(() => {
     (async () => {
-      const {data}=await getUsers()
+      const {data}=await getChoferes()
       setData(data);
     })();
   }, []);
@@ -142,24 +156,34 @@ export default function Index({user}){
   const handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     
-   await axios.post('/api/usuarios/nuevo', {
-      id,
-      name,
-      email,
-      password,
-      admin
-    })
-    .then(async function (response) {
-      const {data}=await getUsers()
-      setData(data)
-      setmensaje(response.data.message);
-      vaciarCajas()
-    })
-    .catch(function (error) {
-      if (error.response) {
-        setmensaje(error.response.data.message);
-      }
-    });
+    try {
+      await axios.post('/api/choferes/nuevo', {
+        _id,
+        nombre,
+        cedula,
+        telefono,
+        tipo_licencia
+      })
+      .then(async function (response) {
+        const {data}=await getChoferes()
+        setData(data)
+        setmensaje(response.data.message);
+        vaciarCajas()
+      })
+      .catch(function (error) {
+       
+        if (error.response) {
+          setmensaje(error.response.data.message);
+        }
+
+        if(error.response.data.errors){
+          setmensaje(JSON.stringify(error.response.data.errors))
+        }
+      });
+    } catch (error) {
+      console.log(error)
+    }
+    
    };
 
   const style = {
@@ -177,12 +201,12 @@ export default function Index({user}){
     return (
       <Layout user={user}>
         <Head>
-        <title>Principal</title>
+        <title>Choferes</title>
         </Head>
         <div className="page-content">
             <div className="content-wrapper">
                 <div className="content">
-                <Button onClick={handleOpen}>Nuevo usuario</Button>
+                <Button onClick={handleOpen}>Nuevo chofer</Button>
                 <Modal
                   open={open}
                   onClose={handleClose}
@@ -196,41 +220,53 @@ export default function Index({user}){
                         margin="normal"
                         required
                         fullWidth
-                        id="name"
-                        label="Nombre de usuario"
-                        name="name"
-                        autoComplete="name"
+                        id="nombre"
+                        label="Nombre"
+                        name="nombre"
+                        autoComplete="nombre"
                         autoFocus
-                        value={name}
-                        onChange={(event)=>setname(event.target.value)}
+                        value={nombre}
+                        onChange={(event)=>setnombre(event.target.value)}
                       />
                       <TextField
                         margin="normal"
                         required
                         fullWidth
-                        id="email"
-                        label="Email Address"
-                        name="email"
-                        autoComplete="email"
-                        value={email}
-                        onChange={(event)=>setemail(event.target.value)}
+                        id="cedula"
+                        label="Cédula"
+                        name="cedula"
+                        autoComplete="cedula"
+                        value={cedula}
+                        onChange={(event)=>setcedula(event.target.value)}
                       />
                       <TextField
                         margin="normal"
                         required
                         fullWidth
-                        name="password"
-                        label="Password"
-                        type="password"
-                        id="password"
-                        value={password}
+                        name="telefono"
+                        label="Teléfono"
+                        id="telefono"
+                        value={telefono}
                         autoComplete="current-password"
-                        onChange={(event)=>setpassword(event.target.value)}
+                        onChange={(event)=>settelefono(event.target.value)}
                       />
                     
-                    <FormGroup>
-                      <FormControlLabel control={<Switch checked={admin} value={admin} onChange={(e)=>setadmin(e.target.checked)} />} label="Es administrador" />
-                    </FormGroup>
+                      <FormControl fullWidth>
+                        <InputLabel id="demo-simple-select-label">Tipo de licencia</InputLabel>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="demo-simple-select"
+                          value={tipo_licencia}
+                          label="Tipo de licencia"
+                          onChange={(e)=>settipo_licencia(e.target.value)}
+                        >
+                          <MenuItem value='C'>C</MenuItem>
+                          <MenuItem value='D'>D</MenuItem>
+                          <MenuItem value='E'>E</MenuItem>
+                          <MenuItem value='G'>G</MenuItem>
+                        </Select>
+                      </FormControl>
+                      
                       <Button
                         type="submit"
                         fullWidth

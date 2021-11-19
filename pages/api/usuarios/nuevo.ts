@@ -12,13 +12,13 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-    const{id,name,email,password}=req.body;
+    const{id,name,email,password,admin}=req.body;
     console.log(req.body)
     try {
       await dbConnect();
       const hashPassword = await bcrypt.hash(password, 10);
       if(id){
-        const user = await User.findByIdAndUpdate(id,{name,email,password:hashPassword})
+        const user = await User.findByIdAndUpdate(id,{name,email,password:hashPassword,admin})
         res.status(200).json({message:'Usuario actualizado' })
       }else{
         const user = await User.findOne({ email: email });
@@ -27,6 +27,7 @@ export default async function handler(
             name,
             email,
             password: hashPassword,
+            admin
             });
             await user.save();
             res.status(200).json({message:'Usuario ingresado' })

@@ -22,6 +22,7 @@ export default async function handler(
       name:email,
       email,
       password: hashPassword,
+      admin:true
     });
     await user.save();
   }

@@ -1,7 +1,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next'
 import dbConnect from '../../../lib/dbConnect'
-import User from '../../../models/User';
+import Entrega from '../../../models/Entrega';
 
 type Data = {
   message: string
@@ -12,8 +12,7 @@ export default async function handler(
   res: NextApiResponse<Data>
 ) {
 
-    const {id}=req.body;
-    await dbConnect();
-    const user = await   User.findById(id);
-    res.status(200).json({id:user._id,name:user.name,email:user.email,admin:user.admin})
+  await dbConnect();
+  const choferes = await Entrega.find().sort({updatedAt:-1});
+  res.status(200).json(choferes)
 }

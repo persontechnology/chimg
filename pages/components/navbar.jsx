@@ -1,6 +1,8 @@
 import Link from 'next/link'
-
+import { useRouter } from "next/router";
 export default function Navbar(){
+    const router = useRouter();
+
     return(
         <>
         <div className="navbar navbar-expand-lg navbar-dark bg-indigo navbar-static shadow-none px-lg-0">
@@ -63,7 +65,7 @@ export default function Navbar(){
             <ul className="navbar-nav navbar-nav-underline flex-row text-nowrap">
                 <li className="nav-item">
                 <Link href="/">
-                    <a className="navbar-nav-link active">
+                    <a className={router.asPath == "/" ? "navbar-nav-link  active" : "navbar-nav-link " }>
                         Principal
                     </a>
                 </Link>
@@ -71,48 +73,49 @@ export default function Navbar(){
                 
                 <li className="nav-item">
                 <Link href="/usuarios">
-                    <a className="navbar-nav-link">
+                <a className={router.asPath == "/usuarios" ? "navbar-nav-link  active" : "navbar-nav-link " }>
                         Usuarios
                     </a>
                 </Link>
                 </li>
                 <li className="nav-item">
-                    <a href="#" className="navbar-nav-link">
+                <Link href="/choferes">
+                    <a className={router.asPath == "/choferes" ? "navbar-nav-link  active" : "navbar-nav-link " }>
                         Choferes
                     </a>
+                </Link>
                 </li>
                 
                 <li className="nav-item">
-                    <a href="#" className="navbar-nav-link">
+                <Link href="/vehiculos">
+                    <a className={router.asPath == "/vehiculos" ? "navbar-nav-link  active" : "navbar-nav-link " }>
                         Vehículos
                     </a>
+                </Link>
                 </li>
 
                 <li className="nav-item">
-                    <a href="#" className="navbar-nav-link">
-                        Combustible
-                    </a>
-                </li>
-                <li className="nav-item">
-                    <a href="#" className="navbar-nav-link">
+                <Link href="/entregas">
+                    <a className={router.asPath == "/entregas" ? "navbar-nav-link  active" : "navbar-nav-link " }>
                         Entregas
                     </a>
+                </Link>
                 </li>
                 
                 <li className="nav-item">
-                    <a href="#" className="navbar-nav-link">
+                    <a className={router.asPath == "/mantenimiento" ? "navbar-nav-link  active" : "navbar-nav-link " }>
                         Mantenimiento
                     </a>
                 </li>
 
                 <li className="nav-item">
-                    <a href="#" className="navbar-nav-link">
+                    <a className={router.asPath == "/reportes" ? "navbar-nav-link  active" : "navbar-nav-link " }>
                         Reportes
                     </a>
                 </li>
 
                 <li className="nav-item">
-                    <a href="#" className="navbar-nav-link">
+                    <a className={router.asPath == "/mapa" ? "navbar-nav-link  active" : "navbar-nav-link " }>
                         Mapa
                     </a>
                 </li>
