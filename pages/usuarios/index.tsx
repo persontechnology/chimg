@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import axios from "axios";
-import Tabla from "./tabla";
+import Tabla from "../components/tabla";
 import Layout from '../components/layout'
 import Head from 'next/head'
 import Button from '@mui/material/Button';

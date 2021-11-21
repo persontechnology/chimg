@@ -6,7 +6,6 @@ import '@fontsource/roboto/700.css';
 import '../public/global_assets/css/icons/icomoon/styles.min.css'
 import '../public/assets/css/all.min.css'
 
-
 import type { AppProps } from 'next/app'
 
 function MyApp({ Component, pageProps }: AppProps) {
