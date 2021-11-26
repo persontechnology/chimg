@@ -13,6 +13,8 @@ import Modal from '@mui/material/Modal';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
+import  SimpleSnackbar from '../components/SimpleSnackbar'
+import Alerta from '../components/alerta'
 
 //start login
 import { withSessionSsr } from "../../lib/withSession";
@@ -47,13 +49,14 @@ export default function Index({user}){
   const [password, setpassword] = useState('')
   const [id, setid] = useState('')
   const [admin, setadmin] = useState(false)
-
+  const [noty, setnoty] = useState(false)
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () =>  {
     setOpen(false)
     setmensaje('')
     vaciarCajas()
+    setnoty(false)
   };
 
 
@@ -69,7 +72,7 @@ export default function Index({user}){
     return (
       <ButtonGroup variant="contained" aria-label="outlined primary button group">
         <Button onClick={()=>getUserId({id})}><EditIcon/></Button>
-        <Button color="error" onClick={()=>eliminar({id})} ><DeleteIcon/></Button>
+        <SimpleSnackbar eliminar={()=>{eliminar({id})}}/>
       </ButtonGroup>
     )
   }
@@ -154,13 +157,19 @@ export default function Index({user}){
       setData(data)
       setmensaje(response.data.message);
       vaciarCajas()
+      handleClose()
+      setnoty(true)
     })
     .catch(function (error) {
       if (error.response) {
         setmensaje(error.response.data.message);
       }
+      error.response.data.errors.map((e)=>{
+        setmensaje(e.msg)
+      })
     });
    };
+
 
   const style = {
     position: 'absolute' as 'absolute',
@@ -179,6 +188,12 @@ export default function Index({user}){
         <Head>
         <title>Principal</title>
         </Head>
+        {
+          noty===true?(
+            <Alerta mensaje="Usuario guardado"/>
+          ):<></>
+        }
+
         <div className="page-content">
             <div className="content-wrapper">
                 <div className="content">

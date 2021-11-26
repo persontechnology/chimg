@@ -15,9 +15,10 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-
+import  SimpleSnackbar from '../components/SimpleSnackbar'
 //start login
 import { withSessionSsr } from "../../lib/withSession";
+import Alerta from "../components/alerta";
 
 export const getServerSideProps = withSessionSsr(
   async function getServerSideProps({ req }) {
@@ -49,13 +50,14 @@ export default function Index({user}){
   const [cedula, setcedula] = useState('')
   const [telefono, settelefono] = useState('')
   const [tipo_licencia, settipo_licencia] = useState('C')
-
+  const [noty, setnoty] = useState(false)
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () =>  {
     setOpen(false)
     setmensaje('')
     vaciarCajas()
+    setnoty(false)
   };
 
 
@@ -71,7 +73,7 @@ export default function Index({user}){
     return (
       <ButtonGroup variant="contained" aria-label="outlined primary button group">
         <Button onClick={()=>getChoferId({id})}><EditIcon/></Button>
-        <Button color="error" onClick={()=>eliminar({id})} ><DeleteIcon/></Button>
+        <SimpleSnackbar eliminar={()=>{eliminar({id})}}/>
       </ButtonGroup>
     )
   }
@@ -169,6 +171,8 @@ export default function Index({user}){
         setData(data)
         setmensaje(response.data.message);
         vaciarCajas()
+        handleClose()
+        setnoty(true)
       })
       .catch(function (error) {
        
@@ -176,9 +180,10 @@ export default function Index({user}){
           setmensaje(error.response.data.message);
         }
 
-        if(error.response.data.errors){
-          setmensaje(JSON.stringify(error.response.data.errors))
-        }
+        error.response.data.errors.map((v)=>{
+          setmensaje(v.msg)
+        })
+
       });
     } catch (error) {
       console.log(error)
@@ -203,6 +208,11 @@ export default function Index({user}){
         <Head>
         <title>Choferes</title>
         </Head>
+        {
+          noty?(
+            <Alerta mensaje="Usuario guardado"/>
+          ):<></>
+        }
         <div className="page-content">
             <div className="content-wrapper">
                 <div className="content">
@@ -237,12 +247,14 @@ export default function Index({user}){
                         name="cedula"
                         autoComplete="cedula"
                         value={cedula}
+                        type="number"
                         onChange={(event)=>setcedula(event.target.value)}
                       />
                       <TextField
                         margin="normal"
                         required
                         fullWidth
+                        type="number"
                         name="telefono"
                         label="Teléfono"
                         id="telefono"

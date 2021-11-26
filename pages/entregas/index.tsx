@@ -7,20 +7,11 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import TextField from '@mui/material/TextField';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import Grid from '@mui/material/Grid';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import LocalizationProvider from '@mui/lab/LocalizationProvider';
-import TimePicker from '@mui/lab/TimePicker';
-import { formatDistance} from 'date-fns'
-import { es } from 'date-fns/locale'
-import DataVehiculo from './dataVehiculo'
-import DataChofer from './dataChofer'
-//start login
 import { withSessionSsr } from "../../lib/withSession";
-import Mapa from "./mapa";
+import Switch from '@mui/material/Switch';
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import SimpleSnackbar from "../components/SimpleSnackbar";
 
 
 export const getServerSideProps = withSessionSsr(
@@ -45,8 +36,7 @@ export const getServerSideProps = withSessionSsr(
 //end login
 
 export default function Index({user}){
-  
-  
+  const router = useRouter()
   const [data, setdata] = useState([])
   const [mensaje, setmensaje] = useState('');
   
@@ -64,121 +54,190 @@ export default function Index({user}){
   const [kilometraje_actual, setkilometraje_actual] = useState('')
   const [valor_combustible, setvalor_combustible] = useState('')
 
-  const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () =>  {
-    setOpen(false)
-    setmensaje('')
-    vaciarCajas()
-  };
-  
 
-  function vaciarCajas(){
-    set_id('')
-    setchofer('')
-    setvehiculo('')
-    setubicacion('')
-    setreferencia_entrega(new Date())
-    sethora_programada(new Date())
-    sethora_salida(new Date())
-    settiempo('')
-    setpeso('')
-    setunidad('')
-    setkilometraje('')
-    setkilometraje_actual('')
-    setvalor_combustible('')
-    setOpen(false)
-  }
-
-  function Opciones({id}){
-    return (
-      <ButtonGroup variant="contained" aria-label="outlined primary button group">
-        <Button onClick={()=>getVehiculoId({id})}><EditIcon/></Button>
-        <Button color="error" onClick={()=>eliminar({id})} ><DeleteIcon/></Button>
-      </ButtonGroup>
-    )
-  }
-  
   async function eliminar({id}){
     await axios.post('/api/entregas/eliminar', {
       _id: id
     })
     .then( async function (response) {
       const {data}=await getEntregas()
-      setData(data)
+      setdata(data)
     })
     .catch(function (error) {
       console.log(error);
     });
   }
 
+  
+  function Opciones({id}){
+    const myurl=`/entregas/${id}`;
+    return (
+      <ButtonGroup variant="contained" aria-label="outlined primary button group">
+        
+      
+        <a className="btn btn-primary btn-sm" href={myurl}>
+          <EditIcon/>
+        </a>
+        <SimpleSnackbar eliminar={()=>{eliminar({id})}}/>
+        {/* <Button color="error" onClick={()=>eliminar({id})} ><DeleteIcon/></Button> */}
+      </ButtonGroup>
+    )
+  }
+  
+  
+  
+  async function cambiarHora(e,op){
+    await axios.post('/api/entregas/hora', {
+      _id: e,
+      op:op
+    })
+    .then( async function (response) {
+      const {data}=await getEntregas()
+      setdata(data)
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  }
+
+  const label = { inputProps: { 'aria-label': 'Switch demo' } };
+  function Salida({id,op}) {
+     return (
+      <Switch {...label} onClick={(e)=>{cambiarHora(id,op)}} />
+    )
+  }
  
   const columns = useMemo(
     () => [
       {
         Header: 'Chofer',
-        accessor: 'chofer',
+        columns: [
+          {
+            Header: 'Nombre',
+            accessor: 'chofer.nombre',
+          },
+          {
+            Header: 'Cédula',
+            accessor: 'chofer.cedula',
+          },
+        ],
         filter: "text"
       },
       {
         Header: 'Vehículo',
-        accessor: 'vehiculo',
+        columns: [
+          {
+            Header: 'Marca',
+            accessor: 'vehiculo.marca',
+          },
+          {
+            Header: 'Placa',
+            accessor: 'vehiculo.placa',
+          },
+          {
+            Header: 'Modelo',
+            accessor: 'vehiculo.modelo',
+          },
+        ],
         filter: "text"
       },
       {
-        Header: 'Referencia entrega',
-        accessor: 'referencia_entrega',
-        filter: "text"
+        Header:'Información',
+        columns:[
+          {
+            Header: 'Referencia entrega',
+            accessor: 'referencia_entrega',
+            filter: "text"
+          },
+          {
+            Header: 'Peso viaje',
+            accessor: 'peso_viaje',
+            disableFilters:true
+          },
+          
+          {
+            Header: 'Kilometraje vehículo',
+            accessor: 'kilometraje_vehiculo',
+            disableFilters:true
+          },
+          {
+            Header: 'Kilometraje calculado',
+            accessor: 'kilometraje_calculado',
+            disableFilters:true
+          },
+          {
+            Header: 'Valor combustible',
+            accessor: 'valor_combustible',
+            disableFilters:true
+          },
+          {
+            Header: 'Combustible calculado',
+            accessor: 'combustible_calculado',
+            disableFilters:true
+          },
+          {
+            Header: 'Distancia rrecorrer',
+            accessor: 'distancia_rrecorrer',
+            disableFilters:true
+          }
+          
+        ],
+        
       },
       {
-        Header: 'hora programada',
-        accessor: 'hora_programada',
-        filter: 'equals',
+        Header:'Hora',
+        columns:[
+          {
+            Header: 'programada',
+            filter: 'equals',
+            accessor: 'hora_programada',
+            className:'bg bg-danger',
+            disableFilters:true,
+            Cell:({row})=>{
+              return (<p>{new Date(row.values.hora_programada).toLocaleString()}</p>)
+            }
+            
+          },
+          {
+            Header: 'salida',
+            accessor: 'hora_salida',
+            disableFilters:true,
+            Cell:({row})=>{
+              if(row.values.hora_salida){
+                return (<p>{new Date(row.values.hora_salida).toLocaleString()}</p>)
+              }else{
+                return (<Salida id={row.values._id} op="Salida"/>)
+              }
+            }
+          },
+          {
+            Header: 'llegada',
+            accessor: 'hora_llegada',
+            disableFilters:true,
+            Cell:({row})=>{
+              if(row.values.hora_llegada){
+                return (<p>{new Date(row.values.hora_llegada).toLocaleString()}</p>)
+              }else{
+                return (<Salida id={row.values._id} op="Llegada"/>)
+              }
+            }
+          }
+        ]
       },
       {
-        Header: 'Hora salida',
-        accessor: 'hora_salida',
-        filter: "text"
-      },
-      {
-        Header: 'Tiempo',
-        accessor: 'tiempo',
-        filter: "text"
-      },
-      {
-        Header: 'Peso',
-        accessor: 'peso',
-        filter: "text"
-      },
-      {
-        Header: 'Unidad',
-        accessor: 'unidad',
-        filter: "text"
-      },
-      {
-        Header: 'Kilometraje',
-        accessor: 'kilometraje',
-        filter: "text"
-      },
-      {
-        Header: 'Kilometraje actual',
-        accessor: 'kilometraje_actual',
-        filter: "text"
-      },
-      {
-        Header: 'Valor combustible',
-        accessor: 'valor_combustible',
-        filter: "text"
-      },
+        Header: 'Opción',
+        columns:[
+          {
+            accessor:'_id',
+            Cell: ({ row }) => (
+              <Opciones id={row.values._id}/>
+            ),
+            disableFilters:true,
+          }
+        ]
+            
+      }
       
-      {
-        Header: 'Opción', // No header
-        accessor:'_id',
-        Cell: ({ row }) => (
-          <Opciones id={row.values._id}/>
-        ),
-        disableFilters:true,
-      },
     ],
     []
   )
@@ -188,82 +247,13 @@ export default function Index({user}){
     return await axios.get('/api/entregas/listado');
   }
 
-  async function getEntregaId({id}) {
-    
-    await axios.post('/api/entregas/obtener', {
-      _id: id
-    })
-    .then( async function (response) {
-      set_id(response.data._id)
-      //setchofer('')
-      //setvehiculo('')
-      setreferencia_entrega(response.data.referencia_entrega)
-      sethora_programada(response.data.hora_programada)
-      sethora_salida(response.data.hora_salida)
-      settiempo(response.data.tiempo)
-      setpeso(response.data.peso)
-      setunidad(response.data.unidad)
-      setkilometraje(response.data.kilometraje)
-      setkilometraje_actual(response.data.kilometraje_actual)
-      setvalor_combustible(response.data.valor_combustible)
-      setubicacion(response.data.ubicacion)
-      setOpen(true)
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-  }
 
-
+  useEffect(() => {
+  (async () => {
+      const {data}= await axios.get('/api/entregas/listado');
+      await setdata(data)
   
-  
-  const handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    
-    try {
-      await axios.post('/api/entregas/nuevo', {
-        _id,
-        chofer,
-        vehiculo,
-        referencia_entrega,
-        hora_programada,
-        hora_salida,
-        tiempo,
-        peso,
-        unidad,
-        kilometraje,
-        kilometraje_actual,
-        valor_combustible,
-        ubicacion
-      })
-      .then(async function (response) {
-        const {data}=await getEntregas()
-        setdata(data)
-        setmensaje(response.data.message);
-        vaciarCajas()
-      })
-      .catch(function (error) {
-       
-        if (error.response) {
-          setmensaje(error.response.data.message);
-        }
-
-        if(error.response.data.errors){
-          setmensaje(JSON.stringify(error.response.data.errors))
-        }
-      });
-    } catch (error) {
-      console.log(error)
-    }
-    
-   };
-
-   useEffect(() => {
-    (async () => {
-        const {data}= await axios.get('/api/entregas/listado');
-        await setdata(data)
-    
-    })();
+  })();
     
 }, []);
 
@@ -290,150 +280,7 @@ export default function Index({user}){
         <div className="page-content">
             <div className="content-wrapper">
                 <div className="content">
-                <Button onClick={handleOpen}>Nuevo vehículo</Button>
-                <Modal
-                  open={open}
-                  onClose={handleClose}
-                  aria-labelledby="modal-modal-title"
-                  aria-describedby="modal-modal-description"
-                >
-                  
-                    <Box component="form" onSubmit={handleSubmit} sx={style}>
-                      <p>{mensaje}</p>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                          <DataChofer chofer={chofer} setchofer={setchofer} />
-                          <p>{chofer}</p>
-                        </Grid>  
-                        <Grid item xs={12}>
-                            <DataVehiculo vehiculo={vehiculo} setvehiculo={setvehiculo} />
-                            <p>{vehiculo}</p>
-                        </Grid>
-                        <Grid item xs={12}>
-                          <TextField
-                            autoComplete="referencia_entrega"
-                            name="referencia_entrega"
-                            required
-                            fullWidth
-                            id="referencia_entrega"
-                            label="Referencia entrega"
-                            value={referencia_entrega}
-                            onChange={(e)=>setreferencia_entrega(e.target.value)}
-                            
-                          />
-                        </Grid>
-                        
-                        <LocalizationProvider dateAdapter={AdapterDateFns}>
-                          <Grid item xs={12} sm={6}>
-                            <TimePicker
-                                label="Hora programada"
-                                value={hora_programada}
-                                onChange={(e)=>sethora_programada(e)}
-                                renderInput={(params) => <TextField {...params} />}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <TimePicker
-                                label="Hora salida"
-                                value={hora_salida}
-                                onChange={(e)=>{
-                                    sethora_salida(e)
-                                    settiempo(formatDistance(hora_salida, hora_programada, { addSuffix: true,locale:es }))
-                                }}
-                                renderInput={(params) => <TextField {...params} />}
-                            />
-                          </Grid>
-                          <Grid item xs={12}>
-                            <p>Tiempo: {tiempo}</p>
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <TextField
-                                autoComplete="peso"
-                                name="peso"
-                                type="number"
-                                required
-                                fullWidth
-                                id="peso"
-                                label="Peso de viaje"
-                                value={peso}
-                                onChange={(e)=>setpeso(e.target.value)}
-                                
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <TextField
-                                autoComplete="unidad"
-                                name="unidad"
-                                required
-                                fullWidth
-                                id="unidada"
-                                label="Unidad de peso"
-                                value={unidad}
-                                onChange={(e)=>setunidad(e.target.value)}
-                                
-                            />
-                          </Grid>
-
-                          <Grid item xs={12} sm={6}>
-                            <TextField
-                                autoComplete="kilometraje"
-                                name="kilometraje"
-                                type="number"
-                                required
-                                fullWidth
-                                id="kilometraje"
-                                label="Kilometraje"
-                                value={kilometraje}
-                                onChange={(e)=>setkilometraje(e.target.value)}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <TextField
-                                autoComplete="kilometraje_actual"
-                                name="kilometraje_actual"
-                                required
-                                fullWidth
-                                id="kilometraje_actual"
-                                label="Kilometraje actual"
-                                value={kilometraje_actual}
-                                onChange={(e)=>setkilometraje_actual(e.target.value)}
-                                type="number"
-                            />
-                          </Grid>
-                          <Grid item xs={12}>
-                            <TextField
-                                autoComplete="valor_combustible"
-                                name="valor_combustible"
-                                required
-                                fullWidth
-                                id="valor_combustible"
-                                label="Valor combustible"
-                                value={valor_combustible}
-                                onChange={(e)=>setvalor_combustible(e.target.value)}
-                                type="number"
-                            />
-                          </Grid>
-                          <Grid item xs={12}>
-                           <p>Lugar</p>
-                            <Mapa ubicacion={ubicacion} setubicacion={setubicacion}/>
-                            <p>{ubicacion}</p>
-                          </Grid>
-
-                        </LocalizationProvider>
-                        
-                      </Grid>
-                      <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        sx={{ mt: 3, mb: 2 }}
-                      >
-                        Guardar
-                      </Button>
-                     
-                    </Box>
-                  
-                </Modal>
+                <a href="/entregas/nuevo" className="btn btn-link">Nueva entrega</a>
                 <Tabla columns={columns} data={data} />
                 </div>
             </div>

@@ -223,7 +223,7 @@ function Table({ columns, data }) {
     <div className="card">
       
         <div className="table-responsive">
-          <table {...getTableProps()} className="table table-bordered">
+          <table {...getTableProps()} className="table table-bordered table-sm">
             <thead>
               {headerGroups.map(headerGroup => (
                 <tr {...headerGroup.getHeaderGroupProps()}>

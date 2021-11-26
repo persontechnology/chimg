@@ -13,6 +13,6 @@ export default async function handler(
 ) {
 
   await dbConnect();
-  const choferes = await Entrega.find().sort({updatedAt:-1});
+  const choferes = await Entrega.find().sort({updatedAt:-1}).populate('chofer').populate('vehiculo');
   res.status(200).json(choferes)
 }

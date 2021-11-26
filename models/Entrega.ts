@@ -21,27 +21,40 @@ const EntregaSchema=new Schema({
     hora_salida:{
         type:Date
     },
-    tiempo:{
-        type:String
+    hora_llegada:{
+        type:Date
     },
-    peso:{
+    peso_viaje:{
         type:Number
     },
-    unidad:{
+    kilometraje_vehiculo:{
         type:String
     },
-    kilometraje:{
-        type:Number
-    },
-    kilometraje_actual:{
+    kilometraje_calculado:{
         type:Number
     },
     valor_combustible:{
         type:Number
     },
-    ubicacion:{
+    combustible_calculado:{
+        type:Number
+    },
+    distancia_rrecorrer:{
         type:String
     },
+    lat_a:{
+        type:String
+    },
+    lng_a:{
+        type:String
+    },
+    lat_b:{
+        type:String
+    },
+    lng_b:{
+        type:String
+    },
+
     updatedAt: {
         type: Date,
         default: Date.now,

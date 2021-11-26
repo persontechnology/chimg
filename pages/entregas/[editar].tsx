@@ -42,9 +42,9 @@ export const getServerSideProps = withSessionSsr(
 export default function Index({user}){
   
   const router = useRouter()
+  const { editar } = router.query
 
   const [mensaje, setmensaje] = useState('');
-  const [_id, set_id] = useState('')
   const [chofer, setchofer] = useState('')
   const [vehiculo, setvehiculo] = useState('')
   const [referencia_entrega, setreferencia_entrega] = useState('')
@@ -56,13 +56,13 @@ export default function Index({user}){
   const [combustible_calculado, setcombustible_calculado] = useState('')
   const [tonelaje_vehiculo_actual, settonelaje_vehiculo_actual] = useState('')
   const [distancia_rrecorrer, setdistancia_rrecorrer] = useState('')
-  const [lat_a,setlat_a]=useState('-1.049537')
-  const [lng_a,setlng_a]=useState('-78.587458')
-  const [lat_b,setlat_b]=useState('-1.049537')
-  const [lng_b,setlng_b]=useState('-78.587458')
-
+  const [lat_a,setlat_a]=useState('')
+  const [lng_a,setlng_a]=useState('')
+  const [lat_b,setlat_b]=useState('')
+  const [lng_b,setlng_b]=useState('')
   const [nombre_chofer, setnombre_chofer] = useState('')
   const [nombre_vehiculo, setnombre_vehiculo] = useState('')
+
   const style = {
     position: 'absolute' as 'absolute',
     top: '50%',
@@ -80,9 +80,9 @@ export default function Index({user}){
   const handleSubmit =async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-
     try {
       await axios.post('/api/entregas/nuevo', {
+        _id:editar,
         chofer,
         vehiculo,
         referencia_entrega,
@@ -120,6 +120,43 @@ export default function Index({user}){
 
   };
 
+
+ 
+
+  useEffect(() => {
+  (async () => {
+    
+    await axios.post('/api/entregas/obtener', {
+        _id: editar
+      })
+      .then( async function (response) {
+      
+        setreferencia_entrega(response.data.referencia_entrega)
+        sethora_programada(response.data.hora_programada)
+        setpeso(response.data.peso_viaje)
+        setkilometraje_vehiculo_actual(response.data.kilometraje_vehiculo)
+        setkilometraje_calculado(response.data.kilometraje_calculado)
+        setvalor_combustible(response.data.valor_combustible)
+        setcombustible_calculado(response.data.combustible_calculado)
+        setlat_a(response.data.lat_a)
+        setlng_a(response.data.lng_a)
+        setlat_b(response.data.lat_b)
+        setlng_b(response.data.lng_b)
+        setchofer(response.data.chofer._id)
+        setvehiculo(response.data.vehiculo._id)
+        setnombre_chofer(response.data.chofer.nombre)
+        setnombre_vehiculo(response.data.vehiculo.placa+" - "+response.data.vehiculo.marca)
+        
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+      
+  
+  })();
+    
+}, []);
+
   function calcularKiloComb(e){
     setcombustible_calculado(
       (parseFloat(valor_combustible)*parseFloat(document.getElementById("kilometraje_google_maps").value,10)).toFixed(2)
@@ -132,7 +169,7 @@ export default function Index({user}){
     return (
       <Layout user={user}>
         <Head>
-        <title>Nueva Entrega</title>
+        <title>Editar Entregas</title>
         </Head>
         <div className="page-content">
             <div className="content-wrapper">
@@ -146,7 +183,7 @@ export default function Index({user}){
                                     <p>{mensaje}</p>
                                     <Grid container spacing={2}>
                                     <Grid item xs={12}>
-                                    <DataChofer 
+                                        <DataChofer 
                                           nombre_chofer={nombre_chofer} 
                                           setnombre_chofer={setnombre_chofer}
                                           setchofer={setchofer} 
@@ -155,7 +192,6 @@ export default function Index({user}){
                                         />
                                     </Grid>  
                                     <Grid item xs={12}>
-                                      
                                         <DataVehiculo  
                                             setpeso={setpeso}
                                             setvehiculo={setvehiculo}
@@ -308,6 +344,7 @@ export default function Index({user}){
                                     >
                                     Guardar
                                     </Button>
+                                    
                                     <Button
                                     type="button"
                                     fullWidth
@@ -317,18 +354,17 @@ export default function Index({user}){
                                     >
                                     cancelar
                                     </Button>
-                                    
                                 
                             </div>
                         </div>
                         <div className="col-md-6 col-sm-12">
                             <div className="card card-body">
-                                <input type="hidden"  id="kilometraje_google_maps" placeholder="Kilometraje google maps"  />
-                                <input type="hidden" value={lat_a} onChange={(e)=>setlat_a(e.target.value)}  name="lat_a" id="lat_a" placeholder="lat_a" />
-                                <input type="hidden" value={lng_a} onChange={(e)=>setlng_a(e.target.value)}  name="lng_a" id="lng_a" placeholder="lng_a" />
-                                <input type="hidden" value={lat_b} onChange={(e)=>setlat_b(e.target.value)}  name="lat_b" id="lat_b" placeholder="lat_b" />
-                                <input type="hidden" value={lng_b} onChange={(e)=>setlng_b(e.target.value)}  name="lng_b" id="lng_b" placeholder="lng_b" />
-                                <input type="hidden" id="distancia_rrecorrer" placeholder="distancia_rrecorrer" name="distancia_rrecorrer" />
+                                  <input type="hidden"  id="kilometraje_google_maps" placeholder="Kilometraje google maps"  />
+                                  <input type="hidden" value={lat_a} onChange={(e)=>setlat_a(e.target.value)}  name="lat_a" id="lat_a" placeholder="lat_a" />
+                                  <input type="hidden" value={lng_a} onChange={(e)=>setlng_a(e.target.value)}  name="lng_a" id="lng_a" placeholder="lng_a" />
+                                  <input type="hidden" value={lat_b} onChange={(e)=>setlat_b(e.target.value)}  name="lat_b" id="lat_b" placeholder="lat_b" />
+                                  <input type="hidden" value={lng_b} onChange={(e)=>setlng_b(e.target.value)}  name="lng_b" id="lng_b" placeholder="lng_b" />
+                                  <input type="hidden" id="distancia_rrecorrer" placeholder="distancia_rrecorrer" name="distancia_rrecorrer" />
                                 <div>
                                 <strong>Total distancia a rrecorrer</strong>
                                 
@@ -341,9 +377,6 @@ export default function Index({user}){
                         </div>
                       </div>
                     </Box>
-                    
-                
-                
                 </div>
             </div>
         </div>

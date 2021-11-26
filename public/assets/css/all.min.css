@@ -12390,10 +12390,10 @@ label.custom-control {
     height: 3px;
 }
 .navbar-light .navbar-nav-link.active:before {
-    background-color: #ffd648;
+    background-color: #11149d;
 }
 .navbar-dark .navbar-nav-link.active:before {
-    background-color: #ffd648;
+    background-color: #11149d;
 }
 .navbar-nav-link.disabled {
     cursor: default;
